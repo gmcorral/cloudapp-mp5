@@ -16,6 +16,8 @@ import java.util.regex.Pattern;
 
 public final class RandomForestMP {
 
+	private static final Pattern SPACE = Pattern.compile(",");
+	
     public static void main(String[] args) {
         if (args.length < 3) {
             System.err.println(
