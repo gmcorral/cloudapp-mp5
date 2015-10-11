@@ -28,7 +28,6 @@ public final class RandomForestMP {
 
         SparkConf sparkConf = new SparkConf().setAppName("RandomForestMP");
         JavaSparkContext sc = new JavaSparkContext(sparkConf);
-        final RandomForestModel model;
 
         Integer numClasses = 2;
         HashMap<Integer, Integer> categoricalFeaturesInfo = new HashMap<Integer, Integer>();
@@ -39,8 +38,33 @@ public final class RandomForestMP {
         Integer maxBins = 32;
         Integer seed = 12345;
 
-		// TODO
+        JavaRDD<LabeledPoint> train = sc.textFile(training_data_path).map(new Function<String, LabeledPoint>(){
+            public LabeledPoint call(String line) throws Exception {
+                String[] tok = SPACE.split(line);
+                double label = Double.parseDouble(tok[tok.length-1]);
+                double[] point = new double[tok.length-1];
+                for (int i = 0; i < tok.length - 1; i++) {
+                    point[i] = Double.parseDouble(tok[i]);
+                }
+                return new LabeledPoint(label, Vectors.dense(point));
+            }
+        });
+        
+        JavaRDD<Vector> test = sc.textFile(test_data_path).map(new Function<String, Vector>(){
+            public Vector call(String line) throws Exception {
+                String[] tok = SPACE.split(line);
+                double[] point = new double[tok.length-1];
+                for (int i = 0; i < tok.length - 1; i++) {
+                    point[i] = Double.parseDouble(tok[i]);
+                }
+                return Vectors.dense(point);
+            }
+        });
 
+        final RandomForestModel model = org.apache.spark.mllib.tree.RandomForest.trainClassifier(
+                    train, numClasses, categoricalFeaturesInfo, numTrees, featureSubsetStrategy,
+                    impurity, maxDepth, maxBins, seed);
+        
         JavaRDD<LabeledPoint> results = test.map(new Function<Vector, LabeledPoint>() {
             public LabeledPoint call(Vector points) {
                 return new LabeledPoint(model.predict(points), points);
