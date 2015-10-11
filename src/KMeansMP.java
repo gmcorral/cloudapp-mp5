@@ -78,7 +78,6 @@ public final class KMeansMP {
         }
         String inputFile = args[0];
         String results_path = args[1];
-        JavaPairRDD<Integer, Iterable<String>> results;
         int k = 4;
         int iterations = 100;
         int runs = 1;
@@ -98,7 +97,7 @@ public final class KMeansMP {
         JavaPairRDD<Integer, Iterable<String>> clusters =titles.zip(points).mapToPair(new ClusterCars(model)).groupByKey();
         clusters.foreach(new PrintCluster(model));
 
-        results.saveAsTextFile(results_path);
+        clusters.saveAsTextFile(results_path);
 
         sc.stop();
     }
